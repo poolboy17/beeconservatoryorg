@@ -1,60 +1,57 @@
 import Link from 'next/link';
-import { getPosts } from '../utils/mdx-utils';
-
+import ArrowIcon from '../components/ArrowIcon';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
 import Layout, { GradientBackground } from '../components/Layout';
-import ArrowIcon from '../components/ArrowIcon';
-import { getGlobalData } from '../utils/global-data';
 import SEO from '../components/SEO';
+import { getGlobalData } from '../utils/global-data';
+import { fetchWordPressPosts } from '../utils/wp-graphql';
 
 export default function Index({ posts, globalData }) {
   return (
     <Layout>
-      <SEO title={globalData.name} description={globalData.blogTitle} />
-      <Header name={globalData.name} />
+      <SEO title="Bee Conservatory" description="Welcome to Bee Conservatory – Your source for bee conservation, education, and community action. Explore our latest articles, tips, and resources to help save the bees!" />
+      <Header name="Bee Conservatory" />
       <main className="w-full">
-        <h1 className="mb-12 text-3xl text-center lg:text-5xl">
-          {globalData.blogTitle}
+        <h1 className="mb-12 text-4xl text-center lg:text-6xl font-extrabold text-yellow-700 drop-shadow-lg">
+          Bee Conservatory
         </h1>
+        <p className="mb-8 text-center text-lg text-gray-700 dark:text-gray-200 max-w-2xl mx-auto">
+          Welcome to Bee Conservatory – Your source for bee conservation, education, and community action. Explore our latest articles, tips, and resources to help save the bees!
+        </p>
         <ul className="w-full">
           {posts.map((post) => (
             <li
-              key={post.filePath}
-              className="transition border border-b-0 bg-white/10 border-gray-800/10 md:first:rounded-t-lg md:last:rounded-b-lg backdrop-blur-lg dark:bg-black/30 hover:bg-white/20 dark:hover:bg-black/50 dark:border-white/10 last:border-b"
-              data-sb-object-id={`posts/${post.filePath}`}
+              key={post.id}
+              className="transition border border-b-0 bg-yellow-50/60 border-yellow-200/60 md:first:rounded-t-lg md:last:rounded-b-lg backdrop-blur-lg dark:bg-yellow-900/30 hover:bg-yellow-100/80 dark:hover:bg-yellow-900/50 dark:border-yellow-100/10 last:border-b shadow-sm"
+              data-sb-object-id={`posts/${post.slug}`}
             >
               <Link
-                as={`/posts/${post.filePath.replace(/\.mdx?$/, '')}`}
+                as={`/posts/${post.slug}`}
                 href={`/posts/[slug]`}
-                className="block px-6 py-6 lg:py-10 lg:px-16 focus:outline-hidden focus:ring-4 focus:ring-primary/50"
+                className="block px-6 py-6 lg:py-10 lg:px-16 focus:outline-hidden focus:ring-4 focus:ring-yellow-400/50"
               >
-                {post.data.date && (
-                  <p
-                    className="mb-3 font-bold uppercase opacity-60"
-                    data-sb-field-path="date"
-                  >
-                    {post.data.date}
+                {post.date && (
+                  <p className="mb-3 font-bold uppercase opacity-60 text-yellow-800 dark:text-yellow-200">
+                    {new Date(post.date).toLocaleDateString()}
                   </p>
                 )}
-                <h2 className="text-2xl md:text-3xl" data-sb-field-path="title">
-                  {post.data.title}
+                <h2 className="text-2xl md:text-3xl font-semibold text-yellow-900 dark:text-yellow-100">
+                  {post.title}
                 </h2>
-                {post.data.description && (
-                  <p
-                    className="mt-3 text-lg opacity-60"
-                    data-sb-field-path="description"
-                  >
-                    {post.data.description}
-                  </p>
+                {post.excerpt && (
+                  <div
+                    className="mt-3 text-lg opacity-80 text-gray-800 dark:text-gray-100"
+                    dangerouslySetInnerHTML={{ __html: post.excerpt }}
+                  />
                 )}
-                <ArrowIcon className="mt-4" />
+                <ArrowIcon className="mt-4 text-yellow-600" />
               </Link>
             </li>
           ))}
         </ul>
       </main>
-      <Footer copyrightText={globalData.footerText} />
+      <Footer copyrightText="© 2025 Bee Conservatory. All rights reserved. | beeconservatory.org" />
       <GradientBackground
         variant="large"
         className="fixed top-20 opacity-40 dark:opacity-60"
@@ -67,9 +64,8 @@ export default function Index({ posts, globalData }) {
   );
 }
 
-export function getStaticProps() {
-  const posts = getPosts();
+export async function getStaticProps() {
+  const posts = await fetchWordPressPosts();
   const globalData = getGlobalData();
-
-  return { props: { posts, globalData } };
+  return { props: { posts, globalData }, revalidate: 60 };
 }
